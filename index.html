@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venly Wallet Exporter</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+</head>
+<body>
+    <h1>Venly Wallet Exporter</h1>
+    <p>This tool will help you export your Venly private key.</p>
+    <p>If you are technical knowledgeable, you can use the keystore file to decrypt the private key locally instead of using this tool.</p>
+    <p>Source Code is available on <a href="https://github.com/dnsmpian/venly-exporter" target="_blank">GitHub</a>.</p>
+    <h2>Export your Wallet from Venly</h2>
+    <ol>
+      <li>Sign in here <a href="https://wallet.venly.io" target="_blank">https://wallet.venly.io</a></li>
+      <li>Press on BNB Chain</li>
+      <li>Open Settings (cogwheel icon)</li>
+      <li>Press on Export Wallet</li>
+      <li>Encrypt the keystore file with a password of your choice</li>
+    </ol>
+    <p>You will now get a Keystore.json file downloaded to your computer.</p>
+    <h2>Decrypt your Wallet</h2>
+    <p>Select the Keystore.json file you downloaded and enter the password you used to encrypt it.</p>
+    <input type="file" id="keystoreFile" accept=".json">
+    <input type="password" id="password" placeholder="Enter password">
+    <button onclick="decryptKeystore()">Decrypt</button>
+    <br />
+    <br />
+    <div id="loading" style="display: none;">Decrypting, this might take a while...</div>
+    <p id="address"></p>
+    <p id="result"></p>
+
+    <script>
+        async function decryptKeystore() {
+            const fileInput = document.getElementById('keystoreFile');
+            const passwordInput = document.getElementById('password');
+            const addressElement = document.getElementById('address');
+            const resultElement = document.getElementById('result');
+            const loadingElement = document.getElementById('loading');
+
+            if (!fileInput.files[0] || !passwordInput.value) {
+                resultElement.textContent = 'Please select a file and enter a password.';
+                return;
+            }
+
+            loadingElement.style.display = 'block';
+            resultElement.textContent = '';
+
+            try {
+                const keystoreJson = await fileInput.files[0].text();
+                const wallet = await ethers.Wallet.fromEncryptedJson(keystoreJson, passwordInput.value);
+                addressElement.textContent = `Address: ${wallet.address}`;
+                resultElement.textContent += `Decrypted private key: ${wallet.privateKey}`;
+              } catch (error) {
+                resultElement.textContent = `Decryption failed: ${error.message}`;
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
